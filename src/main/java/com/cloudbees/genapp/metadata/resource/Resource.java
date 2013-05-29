@@ -1,4 +1,20 @@
-package com.cloudbees.genapp.resource;
+package com.cloudbees.genapp.metadata.resource;
+
+ /*
+ * Copyright 2010-2013, CloudBees Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import java.util.*;
 
@@ -14,7 +30,14 @@ public class Resource {
     private Map<String, String> descriptors = new HashMap<String, String>();
     private Map<String, String> properties = new HashMap<String, String>();
 
-    static boolean checkResource(Map<String, String> properties, Map<String, String> descriptors) {
+    /**
+     * Checks if a given metadata entry is a resource.
+     * @param properties A map of key-value pairs for all the properties.
+     * @param descriptors A map of key-value pairs for all descriptors (keys ~ __*__ in the metadata)
+     * @return A boolean, true if the metadata section defined a resource.
+     */
+
+    private static boolean checkResource(Map<String, String> properties, Map<String, String> descriptors) {
         boolean isValid;
         if (isValid = descriptors != null){
             isValid = descriptors.get(NAME_DESCRIPTOR) != null && descriptors.get(TYPE_DESCRIPTOR) != null;
@@ -30,7 +53,13 @@ public class Resource {
         return isValid;
     }
 
-    Resource(Map<String, String> properties, Map<String, String> descriptors) {
+    /**
+     * Constructs a new resource, given the properties and descriptors.
+     * @param properties A map of key-value pairs for all the properties.
+     * @param descriptors A map of key-value pairs for all descriptors (keys ~ __*__ in the metadata)
+     */
+
+    protected Resource(Map<String, String> properties, Map<String, String> descriptors) {
         if (!checkResource(properties, descriptors)) {
             throw new IllegalArgumentException("Incorrect resource definition.");
         }
@@ -62,6 +91,12 @@ public class Resource {
         return properties;
     }
 
+    /**
+     * Gets all resources matching particular keys.
+     * @param filter A list of keys to find in the properties.
+     * @return The properties associated to the specified filters.
+     */
+
     public Map<String, String> filterProperties(List<String> filter) {
         Map<String, String> filteredProperties = new HashMap<String, String>();
         for (String propertyName : filter) {
@@ -72,11 +107,24 @@ public class Resource {
         return filteredProperties;
     }
 
+    /**
+     * The Builder class instanciates new Resources.
+     */
+
     public static class Builder {
+
+        /**
+         * Creates a new resource from a given metadata section. Returns null if the input doesn't represent a Resource.
+         * Otherwise returns a Resource, or a subclass thereof, depending on which kind of resource was detected.
+         * @param metadata A metadata section, given as a Map of key-value pairs.
+         * @return A new Resource, or Resource subclass if applicable.
+         */
 
         public static Resource buildResource(Map<String, String> metadata) {
             Map<String, String> properties = new HashMap<String, String>();
             Map<String, String> descriptors = new HashMap<String, String>();
+
+            // We separe the metadata into properties and descriptors.
             for (Map.Entry<String, String> entry : metadata.entrySet()) {
                 String entryKey = entry.getKey();
                 String entryValue = entry.getValue();
@@ -89,6 +137,12 @@ public class Resource {
                     }
                 }
             }
+
+            /**
+             * We then check if the resource fits one of the subclasses' requirements.
+             * If it does, we then return a subclass of Resource appropriate to the detected type.
+             */
+
             if(Resource.checkResource(properties, descriptors)) {
                 Resource resource = new Resource(properties, descriptors);
                 if (Database.TYPES.contains(resource.getType())) {
@@ -107,55 +161,4 @@ public class Resource {
                 return null;
         }
     }
-
-    /**
-     * This method compounds the hashes for all of the object's variables, creating a hash for the Resource.
-     * @return A simple, non-cryptographic hash for the Resource.
-     */
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-
-        // The hash for a variable set to null is 0, and we skip the .hashCode() method call.
-        result = prime * result + ((getDescriptors() == null) ? 0 : getDescriptors().hashCode());
-        result = prime * result + ((getProperties() == null) ? 0 : getProperties().hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object comparedObject) {
-
-        // We check if this instance is the same as the compared Object and return true if it is.
-        if (this == comparedObject)
-            return true;
-
-        // Then, if that failed, we make sure we are dealing with a Resource and return false if it's not.
-        if (comparedObject == null)
-            return false;
-        if (getClass() != comparedObject.getClass())
-            return false;
-
-        // If it's a Resource, we check for the class' variables to match and return false if they don't.
-        Resource comparedResource = (Resource) comparedObject;
-
-        if (getDescriptors() == null) {
-            if (comparedResource.getDescriptors() != null)
-                return false;
-        } else if (!getDescriptors().equals(comparedResource.getDescriptors())) {
-            return false;
-        }
-
-        if (getProperties() == null) {
-            if (comparedResource.getProperties() != null)
-                return false;
-        } else if (!getProperties().equals(comparedResource.getProperties())) {
-            return false;
-        }
-
-        // If no difference is found then both Resources are equal and we return true.
-        return true;
-    }
-
-
 }

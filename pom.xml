@@ -5,7 +5,7 @@
 
   <groupId>com.cloudbees.genapp</groupId>
   <artifactId>genapp-setup</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>GenApp Setup</name>
 
   <properties>

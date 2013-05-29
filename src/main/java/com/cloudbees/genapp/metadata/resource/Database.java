@@ -1,6 +1,26 @@
-package com.cloudbees.genapp.resource;
+package com.cloudbees.genapp.metadata.resource;
+
+ /*
+ * Copyright 2010-2013, CloudBees Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import java.util.*;
+
+/**
+ * This class stores Resources that contain Database credentials.
+ */
 
 public class Database extends Resource {
 
@@ -45,7 +65,13 @@ public class Database extends Resource {
         return null;
     }
 
-    static boolean checkResource(Resource resource) {
+    /**
+     * Checks if a given Resource is a database definition.
+     * @param resource The Resource to be tested.
+     * @return A boolean, true if the Resource given is a database definition.
+     */
+
+    protected static boolean checkResource(Resource resource) {
         boolean isValid;
         if (isValid = resource != null) {
             isValid = TYPES.contains(resource.getType());
@@ -57,7 +83,7 @@ public class Database extends Resource {
         return isValid;
     }
 
-    Database (Resource resource) {
+    protected Database (Resource resource) {
         super(resource.getProperties(), resource.getDescriptors());
         if (!checkResource(resource))
             throw new IllegalArgumentException("Incorrect database resource definition.");
