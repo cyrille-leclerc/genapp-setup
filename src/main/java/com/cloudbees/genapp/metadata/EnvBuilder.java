@@ -115,8 +115,8 @@ public class EnvBuilder {
 
     public void writeControlFile(String controlPath) throws IOException {
         Map<String, String> env = System.getenv();
-        String controlAbsolutePath = env.get("control_dir") + controlPath;
-        File controlFile = new File(controlAbsolutePath);
+        File controlFile = new File(env.get("control_dir"), controlPath);
+
 
         if (!controlFile.exists())
             controlFile.createNewFile();
