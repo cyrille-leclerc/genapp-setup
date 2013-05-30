@@ -108,4 +108,8 @@ public class Database extends Resource {
     public String getJavaDriver() {
         return getJavaDriver(getDriver(getProperty(URL_PROPERTY)));
     }
+
+    public String getDataSourceClassName() {
+        return getDataSourceClassName(getDriver(getProperty(URL_PROPERTY)));
+    }
 }

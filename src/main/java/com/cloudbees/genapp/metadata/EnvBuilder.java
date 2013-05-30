@@ -18,6 +18,7 @@ package com.cloudbees.genapp.metadata;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * This class writes environment variables from a given Metadata instance to a file in $control_dir.
@@ -26,28 +27,28 @@ import java.util.*;
  * Typical use, if the metadata is given:
  *
  * boolean safe = true;
- * boolean deprecated = false;
- * (new EnvBuilder(safe, deprecated, metadata)).writeControlFile("env_safe");
+ * boolean includeDeprecatedEntries = false;
+ * (new EnvBuilder(safe, includeDeprecatedEntries, metadata)).writeControlFile("env_safe");
  */
 
 public class EnvBuilder {
 
     private boolean safe;
-    private boolean deprecated;
+    private boolean includeDeprecatedEntries;
     private Metadata metadata;
-    private static final List<String> deprecatedKeys = Arrays.asList("^MYSQL_.*$");
+    private static final List<Pattern> deprecatedKeys = Arrays.asList(Pattern.compile("^MYSQL_.*$"));
 
     /**
      * The default constructor.
      * @param safe If false, the environment variables will be written with the java properties format.
      *             If true, it will be written with the bash format.
-     * @param deprecated If true, deprecated environment variables will not be written.
+     * @param includeDeprecatedEntries If true, includeDeprecatedEntries environment variables will not be written.
      * @param metadata The metadata that contains the environment variables to be parsed.
      */
 
-    public EnvBuilder(boolean safe, boolean deprecated, Metadata metadata) {
+    public EnvBuilder(boolean safe, boolean includeDeprecatedEntries, Metadata metadata) {
         this.safe = safe;
-        this.deprecated = deprecated;
+        this.includeDeprecatedEntries = includeDeprecatedEntries;
         this.metadata = metadata;
     }
 
@@ -55,29 +56,27 @@ public class EnvBuilder {
      * Generates a list of key-value Strings from the environment variables contained in the metadata.
      * @return A list of formatted environmental key-value pairs.
      */
-
     private List<String> getProperties() {
-        Vector<String> properties = new Vector<String>();
-        for (Iterator<Map.Entry<String, String>> fields = metadata.getEnvironment().entrySet().iterator();
-             fields.hasNext(); ) {
-            Map.Entry<String, String> field = fields.next();
+        List<String> properties = new ArrayList<String>();
+        for (Map.Entry<String, String> field: metadata.getEnvironment().entrySet()) {
             String fieldKey = field.getKey();
             String fieldValue = field.getValue();
-            if (!deprecated) {
-                boolean isDeprecated = false;
-                for (String deprecatedKey : deprecatedKeys) {
-                    if (fieldKey.matches(deprecatedKey)) {
-                        isDeprecated = true;
-                    }
-                }
-                if (!isDeprecated) {
-                    properties.add(formatProperty(fieldKey, fieldValue));
-                }
-            } else {
+            if (includeDeprecatedEntries || !isDeprecated(fieldKey)) {
                 properties.add(formatProperty(fieldKey, fieldValue));
             }
         }
         return properties;
+    }
+
+    protected boolean isDeprecated(String fieldKey) {
+        boolean isDeprecated = false;
+        for (Pattern deprecatedKey : deprecatedKeys) {
+            if (deprecatedKey.matcher(fieldKey).find()) {
+                isDeprecated = true;
+                break;
+            }
+        }
+        return isDeprecated;
     }
 
     /**
@@ -116,17 +115,16 @@ public class EnvBuilder {
 
     public void writeControlFile(String controlPath) throws IOException {
         Map<String, String> env = System.getenv();
-        String controlAbsolutePath = env.get("control_dir") + controlPath;
-        File controlFile = new File(controlAbsolutePath);
+        File controlFile = new File(env.get("control_dir"), controlPath);
+
 
         if (!controlFile.exists())
             controlFile.createNewFile();
 
         List<String> envProperties = getProperties();
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(controlFile));
+        PrintWriter bufferedWriter = new PrintWriter(new BufferedWriter(new FileWriter(controlFile)));
         for (String line : envProperties) {
-            bufferedWriter.write(line);
-            bufferedWriter.newLine();
+            bufferedWriter.println(line);
         }
         bufferedWriter.close();
     }

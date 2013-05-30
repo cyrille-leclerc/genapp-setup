@@ -84,7 +84,15 @@ public class Resource {
     }
 
     public String getProperty(String property) {
-        return properties.get(property);
+        return  properties.get(property);
+    }
+
+    public String getProperty(String property, String defaultValue) {
+        String value = properties.get(property);
+        if(value == null) {
+            value = defaultValue;
+        }
+        return value;
     }
 
     public Map<String, String> getProperties() {

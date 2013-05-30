@@ -39,8 +39,7 @@ public class Metadata {
      * @param environment A map of the environment variables
      * @param runtimeProperties A map of RuntimeProperties
      */
-    
-    private Metadata(Map<String, Resource> resources, Map<String, String> environment,
+    protected Metadata(Map<String, Resource> resources, Map<String, String> environment,
                     Map<String, RuntimeProperty> runtimeProperties) {
         this.resources = resources;
         this.environment = environment;
@@ -100,7 +99,7 @@ public class Metadata {
          * from the JSON metadata given as input.
          * @throws IOException
          */
-        private static Metadata fromStream(InputStream metadataInputStream) throws IOException {
+        public static Metadata fromStream(InputStream metadataInputStream) throws IOException {
             ObjectMapper metadataObjectMapper = new ObjectMapper();
 
             JsonNode metadataRootNode = metadataObjectMapper.readTree(metadataInputStream);
