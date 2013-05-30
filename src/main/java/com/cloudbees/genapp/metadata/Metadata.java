@@ -62,12 +62,38 @@ public class Metadata {
         return environment;
     }
 
-    public Map<String, String> getRuntimeProperty(String parent) {
-        return runtimeProperties.get(parent).getParameters();
+    /**
+     * @throws NullPointerException if parent property does not exist
+     */
+    public Map<String, String> getRuntimeProperty(String parent) throws NullPointerException {
+        RuntimeProperty runtimeProperty = runtimeProperties.get(parent);
+        if(runtimeProperty == null) {
+            throw new NullPointerException("No RuntimeProperty found for '" + parent + "'");
+        }
+        return runtimeProperty.getParameters();
     }
 
-    public String getRuntimeParameter(String parent, String propertyName) {
-        return runtimeProperties.get(parent).getParameter(propertyName);
+    /**
+     * @throws NullPointerException if parent property does not exist
+     */
+    public String getRuntimeParameter(String parent, String propertyName) throws NullPointerException {
+        RuntimeProperty runtimeProperty = runtimeProperties.get(parent);
+        if(runtimeProperty == null) {
+            throw new NullPointerException("No RuntimeProperty found for '" + parent + "'");
+        }
+        return runtimeProperty.getParameter(propertyName);
+    }
+
+    public String getRuntimeParameter(String parent, String propertyName, String defaultValue) {
+        RuntimeProperty runtimeProperty = runtimeProperties.get(parent);
+        if(runtimeProperty == null) {
+            return defaultValue;
+        }
+        String value = runtimeProperty.getParameter(propertyName);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
     }
 
     /**
